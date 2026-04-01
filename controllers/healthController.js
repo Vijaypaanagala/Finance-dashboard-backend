@@ -1,7 +1,8 @@
 const getHealth = (req, res) => {
-  res.status(200).json({
+  return res.status(200).json({
     status: "OK",
-    environment: process.env.NODE_ENV || "development",
+    environment: req.app.locals.environment || process.env.NODE_ENV || "development",
+    baseUrl: req.app.locals.baseUrl,
   });
 };
 

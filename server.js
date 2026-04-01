@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
 const healthRoutes = require("./routes/healthRoutes");
@@ -8,26 +9,25 @@ const recordRoutes = require("./routes/recordRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
-// Default to development when NODE_ENV is not provided.
+// Environment setup: default to development and load .env only outside production.
 const NODE_ENV = process.env.NODE_ENV || "development";
 process.env.NODE_ENV = NODE_ENV;
 
-// Load .env only for local development.
-if (NODE_ENV === "development") {
-  require("dotenv").config();
+if (NODE_ENV !== "production") {
+  dotenv.config();
 }
 
 connectDB();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
-// CORS policy: open in development, controlled in production.
-const corsOptions =
-  NODE_ENV === "production"
-    ? { origin: process.env.CORS_ORIGIN || true }
-    : { origin: true };
+app.locals.baseUrl = BASE_URL;
+app.locals.environment = NODE_ENV;
 
-app.use(cors(corsOptions));
+// Allow all origins for now; restrict origins in production if needed.
+app.use(cors());
 app.use(express.json());
 
 app.use("/api/health", healthRoutes);
@@ -39,14 +39,7 @@ app.use((req, res) => {
 });
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-  // Detailed logs in development, concise logs in production.
-  if (NODE_ENV === "development") {
-    console.log(`[DEV] Server running on port ${PORT}`);
-    console.log(`[DEV] Environment: ${NODE_ENV}`);
-  } else {
-    console.log(`Server started on port ${PORT}`);
-  }
+  console.log(`Running in ${NODE_ENV} mode`);
+  console.log(`Server running on port ${PORT}`);
 });
