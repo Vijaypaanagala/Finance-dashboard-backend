@@ -1,5 +1,8 @@
 const getHealth = (req, res) => {
-  res.send("Server running");
+  res.status(200).json({
+    status: "OK",
+    environment: process.env.NODE_ENV || "development",
+  });
 };
 
 module.exports = { getHealth };
